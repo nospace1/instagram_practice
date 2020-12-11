@@ -3,10 +3,11 @@ package com.example.instagram
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.EditText
 import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import kotlinx.android.synthetic.main.activity_main.*
+
 
 class LoginActivity : AppCompatActivity() {
     var auth: FirebaseAuth? = null
@@ -14,12 +15,15 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
         auth = FirebaseAuth.getInstance()
-        email_login_button.setOnClickLister {
+        val email_login_button : android.widget.Button = findViewById(R.id.email_login_button)
+        email_login_button.setOnClickListener {
             signinAndSignup()
         }
     }
 
     fun signinAndSignup() {
+        val email_edittext : EditText = findViewById(R.id.email_edittext)
+        val password_edittext : EditText = findViewById(R.id.password_edittext)
 
         auth?.createUserWithEmailAndPassword(
             email_edittext.text.toString(),
@@ -39,7 +43,10 @@ class LoginActivity : AppCompatActivity() {
             }
     }
 
-    fun singinEmail() {
+    fun signinEmail() {
+        val email_edittext : EditText = findViewById(R.id.email_edittext)
+        val password_edittext : EditText = findViewById(R.id.password_edittext)
+
         auth?.signInWithEmailAndPassword(
             email_edittext.text.toString(),
             password_edittext.text.toString()
