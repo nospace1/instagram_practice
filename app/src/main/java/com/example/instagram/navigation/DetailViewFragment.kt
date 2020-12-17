@@ -65,13 +65,10 @@ class DetailViewFragment : Fragment(){
             viewholder.findViewById<TextView>(R.id.detailviewitem_favoritecount_textview).text = "Likes " + contentDTOs!![position].favoriteCount
             Glide.with(holder.itemView.context).load(contentDTOs!![position].imageUrl).into(viewholder.findViewById<ImageView>(R.id.detailviewitem_profile_image))
 
-
-
-
         }
 
         override fun getItemCount(): Int {
             return contentDTOs.size
-        }
+        } // todo contentDTOs 에러가 있으니 확인하기
     }
 }
