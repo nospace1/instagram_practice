@@ -6,19 +6,23 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.appcompat.view.menu.MenuView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.instagram.R
 import com.example.instagram.navigation.model.ContentDTO
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 class DetailViewFragment : Fragment(){
     var firestore : FirebaseFirestore? = null
+    var uid : String? = null
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         var view = LayoutInflater.from(activity).inflate(R.layout.fragment_detail, container, false)
         firestore = FirebaseFirestore.getInstance()
+        uid = FirebaseAuth.getInstance().currentUser?.uid
 
         view.findViewById<RecyclerView>(R.id.detailviewfragment_recyclerview).adapter = DetailViewRecyclerViewAdapter()
         view.findViewById<RecyclerView>(R.id.detailviewfragment_recyclerview).layoutManager = LinearLayoutManager(activity)
@@ -53,22 +57,61 @@ class DetailViewFragment : Fragment(){
             var viewholder = (holder as CustomViewHolder).itemView
 
             // UserId
-            viewholder.findViewById<TextView>(R.id.detailviewitem_profile_textview).text = contentDTOs!![position].userId
+            viewholder.findViewById<TextView>(R.id.detailviewitem_profile_textview).text =
+                contentDTOs!![position].userId
 
             // Image
-            Glide.with(holder.itemView.context).load(contentDTOs!![position].imageUrl).into(viewholder.findViewById<ImageView>(R.id.detailviewitem_imageview_content))
+            Glide.with(holder.itemView.context).load(contentDTOs!![position].imageUrl)
+                .into(viewholder.findViewById<ImageView>(R.id.detailviewitem_imageview_content))
 
             // Explain of content
-            viewholder.findViewById<TextView>(R.id.detailviewitem_explain_textview).text = contentDTOs!![position].explain
+            viewholder.findViewById<TextView>(R.id.detailviewitem_explain_textview).text =
+                contentDTOs!![position].explain
 
             // likes
-            viewholder.findViewById<TextView>(R.id.detailviewitem_favoritecount_textview).text = "Likes " + contentDTOs!![position].favoriteCount
-            Glide.with(holder.itemView.context).load(contentDTOs!![position].imageUrl).into(viewholder.findViewById<ImageView>(R.id.detailviewitem_profile_image))
+            viewholder.findViewById<TextView>(R.id.detailviewitem_favoritecount_textview).text =
+                "Likes " + contentDTOs!![position].favoriteCount
+            Glide.with(holder.itemView.context).load(contentDTOs!![position].imageUrl)
+                .into(viewholder.findViewById<ImageView>(R.id.detailviewitem_profile_image))
 
+            // This code is when the button is clicked
+            viewholder.findViewById<ImageView>(R.id.detailviewitem_favorite_imageview).setOnClickListener {
+                favoriteEvent(position)
+            }
+            // This code is when the page is loaded
+            if(contentDTOs!![position].favorites.containsKey(uid)){
+                // This is like status
+                viewholder.findViewById<ImageView>(R.id.detailviewitem_favorite_imageview).setImageResource(R.drawable.ic_favorite)
+            }else{
+                // This is unlike status
+                viewholder.findViewById<ImageView>(R.id.detailviewitem_favorite_imageview).setImageResource(R.drawable.ic_favorite_border)
+            }
         }
+
+
 
         override fun getItemCount(): Int {
             return contentDTOs.size
         } // todo contentDTOs 에러가 있으니 확인하기
+
+        fun favoriteEvent(position: Int){
+            var tsDoc = firestore?.collection("images")?.document(contentUidList[position])
+            firestore?.runTransaction { transaction ->
+
+                var contentDTO = transaction.get(tsDoc!!).toObject(ContentDTO::class.java)
+
+                if(contentDTO!!.favorites.containsKey(uid)){
+                    // When the button is clicked
+                    contentDTO?.favoriteCount = contentDTO?.favoriteCount - 1
+                    contentDTO?.favorites.remove(uid)
+                }else{
+                    // When the button is not clicked
+                    contentDTO.favoriteCount = contentDTO?.favoriteCount + 1
+                    contentDTO?.favorites[uid!!] = true
+                }
+                transaction.set(tsDoc, contentDTO)
+            }
+
+        }
     }
 }
