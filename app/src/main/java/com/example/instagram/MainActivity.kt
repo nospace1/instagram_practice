@@ -10,6 +10,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.instagram.navigation.*
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.firebase.auth.FirebaseAuth
 import java.util.jar.Manifest
 
 class MainActivity : AppCompatActivity(){
@@ -46,6 +47,10 @@ class MainActivity : AppCompatActivity(){
                 }
                 R.id.action_account ->{
                     val userFragment = UserFragment()
+                    var bundle = Bundle()
+                    var uid = FirebaseAuth.getInstance().currentUser?.uid
+                    bundle.putString("destinationUid",uid)
+                    userFragment.arguments = bundle
                     supportFragmentManager.beginTransaction().replace(R.id.main_content, userFragment).commit()
                     true
                 }
