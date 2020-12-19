@@ -15,6 +15,7 @@ import com.example.instagram.R
 import com.example.instagram.navigation.model.ContentDTO
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.android.synthetic.main.item_detail.view.*
 
 class DetailViewFragment : Fragment(){
     var firestore : FirebaseFirestore? = null
@@ -34,9 +35,12 @@ class DetailViewFragment : Fragment(){
 
         init {
 
-            firestore?.collection("images")?.orderBy("timestamp")?.addSnapshotListener {querySnapshot, firebaseFirestoreException ->
+            firestore?.collection("images")?.orderBy("timestamp")?.addSnapshotListener addSanpshotListener@{ querySnapshot, firebaseFirestoreException ->
                 contentDTOs.clear()
                 contentUidList.clear()
+                // Sometimes, This code return null of querySnapshot when it signout
+                if(querySnapshot == null) return@addSanpshotListener
+
                 for(snapshot in querySnapshot!!.documents){
                     var item = snapshot.toObject(ContentDTO::class.java)
                     contentDTOs.add(item!!)
@@ -85,6 +89,16 @@ class DetailViewFragment : Fragment(){
             }else{
                 // This is unlike status
                 viewholder.findViewById<ImageView>(R.id.detailviewitem_favorite_imageview).setImageResource(R.drawable.ic_favorite_border)
+            }
+
+            // This code is when the profile image is clicked
+            viewholder.detailviewitem_profile_image.setOnClickListener {
+                var fragment = UserFragment()
+                var bundle = Bundle()
+                bundle.putString("destinationUid", contentDTOs[position].uid)
+                bundle.putString("userId", contentDTOs[position].userId)
+                fragment.arguments = bundle
+                activity?.supportFragmentManager?.beginTransaction()?.replace(R.id.main_content, fragment)?.commit()
             }
         }
 
