@@ -106,7 +106,7 @@ class DetailViewFragment : Fragment(){
 
         override fun getItemCount(): Int {
             return contentDTOs.size
-        } // todo contentDTOs 에러가 있으니 확인하기
+        }
 
         fun favoriteEvent(position: Int){
             var tsDoc = firestore?.collection("images")?.document(contentUidList[position])
