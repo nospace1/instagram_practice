@@ -14,6 +14,8 @@ import bolts.Task
 import com.example.instagram.navigation.*
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.iid.FirebaseInstanceId
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.UploadTask
 import kotlinx.android.synthetic.main.activity_main.*
@@ -63,7 +65,15 @@ class MainActivity : AppCompatActivity(), BottomNavigationView.OnNavigationItemS
         toolbar_title_image.visibility = View.VISIBLE
     }
     fun registerPushToken(){
+        FirebaseInstanceId.getInstance().instanceId.addOnCompleteListener {
+            task ->
+            val token = task.result?.token
+            val uid = FirebaseAuth.getInstance().currentUser?.uid
+            val map = mutableMapOf<String,Any>()
+            map["pushToken"] = token!!
 
+            FirebaseFirestore.getInstance().collection("pushtokens").document(uid!!).set(map)
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -76,13 +86,13 @@ class MainActivity : AppCompatActivity(), BottomNavigationView.OnNavigationItemS
 
         // Set default screen
         bottom_navigation.selectedItemId = R.id.action_home
-
+        registerPushToken()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        if(requestCode == UserFragment.PICK_PROFILE_FROM_ALBUM && resultCode == Activity.RESULT_OK){
+        if(requestCode == UserFragment.PICK_PROFILE_FROM_ALBUM && resultCode == RESULT_OK){
             var imageUri = data?.data
             var uid = FirebaseAuth.getInstance().currentUser?.uid
             var storageRef = FirebaseStorage.getInstance().reference.child("userProfileImages").child(uid!!)
